@@ -1,0 +1,54 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include 'common:scala'
+
+include 'core:controller'
+include 'core:invoker'
+
+include 'tests'
+include 'tests:performance:gatling_tests'
+
+include 'tools:actionProxy'
+include 'tools:ow-utils'
+include 'tools:dev'
+
+include 'tools:admin'
+
+rootProject.name = 'openwhisk'
+
+gradle.ext.scala = [
+    version: '2.12.8',
+    compileFlags: ['-feature', '-unchecked', '-deprecation', '-Xfatal-warnings', '-Ywarn-unused-import']
+]
+
+gradle.ext.scalafmt = [
+    version: '1.5.0',
+    config: new File(rootProject.projectDir, '.scalafmt.conf')
+]
+
+gradle.ext.scoverage = [
+    deps: [
+        'org.scoverage:scalac-scoverage-plugin_2.12:1.3.1',
+        'org.scoverage:scalac-scoverage-runtime_2.12:1.3.1'
+    ]
+]
+
+gradle.ext.akka = [version : '2.5.22']
+gradle.ext.akka_http = [version : '10.1.8']
+
+gradle.ext.curator = [version:'4.0.0']

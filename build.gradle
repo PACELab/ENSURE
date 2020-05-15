@@ -1,0 +1,108 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "cz.alenkacz:gradle-scalafmt:${gradle.scalafmt.version}"
+        classpath 'org.scoverage:gradle-scoverage:2.3.0'
+    }
+}
+
+plugins {
+    id "com.gradle.build-scan" version "1.14"
+}
+
+buildScan {
+    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+    termsOfServiceAgree = 'yes'
+    publishAlwaysIf(System.getenv('CI') != null)
+}
+
+subprojects {
+    apply plugin: 'scalafmt'
+    scalafmt.configFilePath = gradle.scalafmt.config
+
+    group 'org.apache.openwhisk'
+    version '1.0.0-SNAPSHOT'
+
+    afterEvaluate {
+        if (project.plugins.hasPlugin('application')
+                && project.plugins.hasPlugin('scala')) {
+            startScripts {
+                doLast {
+                    unixScript.text = configureUnixClasspath(unixScript)
+                }
+            }
+        }
+
+        if (project.plugins.hasPlugin('maven')) {
+            task sourcesJar(type: Jar, dependsOn: classes) {
+                classifier = 'sources'
+                from sourceSets.main.allSource
+            }
+
+            task testSourcesJar(type: Jar, dependsOn: testClasses) {
+                classifier = 'test-sources'
+                from sourceSets.test.allSource
+                exclude("logback-test.xml")
+            }
+
+            task testClassesJar(type: Jar, dependsOn: testClasses) {
+                classifier = 'tests'
+                from sourceSets.test.output
+            }
+
+            artifacts {
+                archives sourcesJar
+                archives testSourcesJar
+                archives testClassesJar
+            }
+        }
+
+        if (project.plugins.hasPlugin('application')) {
+            //Ensure that dist archive name does not contain version
+            distTar {
+                archiveName = "${project.name}.tar"
+            }
+
+            //Avoid generating the zip files from maven installations
+            distZip {
+                enabled false
+            }
+
+            configurations.archives.artifacts.removeAll {it.file =~ 'zip'}
+        }
+    }
+}
+
+def configureUnixClasspath(File script) {
+    script
+        .readLines()
+        .collect { line ->
+            // Looking for the line that starts with CLASSPATH=
+            line = line.replaceAll(~/^CLASSPATH=.*$/) { original ->
+
+                // Get original line and append it
+                // with the configuration directory.
+                original += ':$APP_HOME/ext-lib/*:$APP_HOME/config'
+            }
+        }
+        .join('\n')
+}

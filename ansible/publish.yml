@@ -1,0 +1,10 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more contributor
+# license agreements; and to You under the Apache License, Version 2.0.
+---
+# This playbook updates CLIs and SDKs on an existing edge host.
+# Artifacts get built and published to NGINX. This assumes an already running egde host in an Openwhisk deployment.
+
+- hosts: edge
+  roles:
+  - cli
+  - sdk

@@ -1,0 +1,9 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more contributor
+# license agreements; and to You under the Apache License, Version 2.0.
+---
+# This playbook writes whisk.properties.
+
+- hosts: ansible
+  tasks:
+    - import_tasks: tasks/writeWhiskProperties.yml
+      when: mode == "deploy"

@@ -1,0 +1,9 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more contributor
+# license agreements; and to You under the Apache License, Version 2.0.
+---
+# Remove API Gateway route management actions.
+
+- name: remove route management actions
+  shell: ./uninstallRouteMgmt.sh {{ catalog_auth_key }} {{ groups['edge'] | first }} {{ catalog_namespace }} {{ cli.path }} chdir="{{ openwhisk_home }}/ansible/roles/routemgmt/files"
+  environment:
+    OPENWHISK_HOME: "{{ openwhisk_home }}"

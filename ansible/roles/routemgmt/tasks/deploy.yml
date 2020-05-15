@@ -1,0 +1,8 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more contributor
+# license agreements; and to You under the Apache License, Version 2.0.
+---
+# Install the API Gateway route management actions.
+- name: install route management actions
+  shell: ./installRouteMgmt.sh {{ catalog_auth_key }} {{ whisk_api_host_name | default(groups['edge'] | first) }} {{ catalog_namespace }} {{ cli.path }} chdir="{{ openwhisk_home }}/ansible/roles/routemgmt/files"
+  environment:
+    OPENWHISK_HOME: "{{ openwhisk_home }}"

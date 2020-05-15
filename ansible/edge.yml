@@ -1,0 +1,12 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more contributor
+# license agreements; and to You under the Apache License, Version 2.0.
+---
+# This playbook deploys Openwhisk Edge servers.
+# The edge is usually populated with NGINX serving as proxy.
+# The CLI also gets built and published for downloading from NGINX.
+# SDKs for blackbox and iOS get published to NGINX also.
+
+- hosts: edge
+  roles:
+  - nginx
+  - cli

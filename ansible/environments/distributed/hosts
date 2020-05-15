@@ -1,0 +1,70 @@
+; the first parameter in a host is the inventory_hostname
+
+; used for local actions only
+ansible ansible_connection=local
+
+[registry]
+172.31.54.227       ansible_host=172.31.54.227
+
+[edge]
+172.31.48.48       ansible_host=172.31.48.48
+
+[apigateway:children]
+edge
+
+[redis:children]
+edge
+
+[controllers]
+172.31.54.227       ansible_host=172.31.54.227
+
+[kafkas]
+172.31.48.48       ansible_host=172.31.48.48
+
+[zookeepers:children]
+kafkas
+
+[invokers]
+
+worker1             ansible_host=worker1
+worker2             ansible_host=worker2
+worker3             ansible_host=worker3
+worker4             ansible_host=worker4
+
+worker5             ansible_host=worker5
+worker6             ansible_host=worker6
+worker7             ansible_host=worker7
+worker8             ansible_host=worker8
+
+worker9             ansible_host=worker9
+worker10             ansible_host=worker10
+worker11             ansible_host=worker11
+worker12             ansible_host=worker12
+
+worker13             ansible_host=worker13
+worker14             ansible_host=worker14
+worker15             ansible_host=worker15
+worker16             ansible_host=worker16
+
+worker17             ansible_host=worker17
+worker18             ansible_host=worker18
+worker19             ansible_host=worker19
+worker20             ansible_host=worker20
+
+worker21             ansible_host=worker21
+worker22             ansible_host=worker22
+worker23             ansible_host=worker23
+worker24             ansible_host=worker24
+
+worker25             ansible_host=worker25
+worker26             ansible_host=worker26
+worker27             ansible_host=worker27
+worker28             ansible_host=worker28
+
+worker29             ansible_host=worker29
+worker30             ansible_host=worker30
+worker31             ansible_host=worker31
+worker32             ansible_host=worker32
+
+[db]
+172.31.54.227       ansible_host=172.31.54.227

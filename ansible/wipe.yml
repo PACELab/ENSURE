@@ -1,0 +1,11 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more contributor
+# license agreements; and to You under the Apache License, Version 2.0.
+---
+# WARNING: This playbook wipes the database. This action is not reversible. Be very careful and know what you are doing.
+
+- hosts: ansible
+  tasks:
+    - import_tasks: tasks/wipeDatabase.yml
+      vars:
+        withViews: True
+      when: mode == "deploy"

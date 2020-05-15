@@ -1,0 +1,12 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more contributor
+# license agreements; and to You under the Apache License, Version 2.0.
+---
+# This role will install the API Gateway route management actions
+# In deploy mode it will deploy the API Gateway route management actions.
+# In clean mode it will remove the API Gateway route management actions.
+
+- import_tasks: deploy.yml
+  when: mode == "deploy"
+
+- import_tasks: clean.yml
+  when: mode == "clean"

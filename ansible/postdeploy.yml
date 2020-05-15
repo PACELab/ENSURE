@@ -1,0 +1,12 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more contributor
+# license agreements; and to You under the Apache License, Version 2.0.
+---
+# This playbook installs additional packages after whisk has been deployed.
+
+- import_playbook: properties.yml
+
+- hosts: ansible
+  tasks:
+    - include_tasks: tasks/installOpenwhiskCatalog.yml
+      when: (mode == "deploy")
+      with_dict: "{{ catalog_repos }}"

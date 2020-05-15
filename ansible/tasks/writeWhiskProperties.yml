@@ -1,0 +1,27 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more contributor
+# license agreements; and to You under the Apache License, Version 2.0.
+---
+# This task will write whisk.properties to the openwhisk_home.
+# Currently whisk.properties is still needed for tests.
+
+- name: write whisk.properties template to openwhisk_home
+  template:
+    src: whisk.properties.j2
+    dest: "{{ openwhisk_home }}/whisk.properties"
+
+- name: check if application.conf.j2 exists
+  tags: application
+  stat: path="{{ openwhisk_home }}/tests/src/test/resources/application.conf.j2"
+  register: application
+
+- name: write test's application conf overrides
+  tags: application
+  template:
+    src: "{{ openwhisk_home }}/tests/src/test/resources/application.conf.j2"
+    dest: "{{ openwhisk_home }}/tests/src/test/resources/application.conf"
+  when: application.stat.exists
+
+- name: write whisk.conf template for wskadmin to openwhisk_home
+  template:
+    src: whisk.conf.j2
+    dest: "{{ openwhisk_home }}/whisk.conf"

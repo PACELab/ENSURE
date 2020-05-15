@@ -1,0 +1,16 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more contributor
+# license agreements; and to You under the Apache License, Version 2.0.
+---
+# Checks, that the Database exists
+# dbName - name of the database to check
+# dbUser - name of the user which should have access rights
+# dbPass - password of the user which should have access
+
+- name: check if {{ dbName }} with {{ db.provider }} exists
+  uri:
+    url: "{{ db.protocol }}://{{ db.host }}:{{ db.port }}/{{ dbName }}"
+    method: HEAD
+    status_code: 200
+    user: "{{ dbUser }}"
+    password: "{{ dbPass }}"
+    force_basic_auth: yes
