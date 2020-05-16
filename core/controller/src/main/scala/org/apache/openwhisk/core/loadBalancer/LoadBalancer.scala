@@ -695,74 +695,7 @@ class ActionStats(val actionName:String,logging: Logging)extends functionInfo {
     val shouldBeLastInvoker = if(inUseInvokers.size>0) (inUseInvokers.size-1) else 0 // 0-indexed, so inUseInvokers.size is the next invoker that'd be considered! // used for v0.51 to v0.55
 
     logging.info(this,s"\t <adbg> <ISRPN-1> action: ${actionName}, toCheckInvoker: ${toCheckInvoker.toInt} shouldBeLastInvoker: ${shouldBeLastInvoker} totNumConts: ${totNumConts} totWindowConts: ${totWindowConts} totWeighedConts: ${totWeighedConts} sqrtNumConts: ${sqrtNumConts} reqdNumConts: ${reqdNumConts} should-have-askedExtraConts: ${shouldHaveReqstdNumExtraConts} numExtraContsNeeded: ${numExtraContsNeeded}")
-    if(forcedDummyReq){
-        var curInvkrNumCores = 0; var curInvkrReqs = 0; var curInvkrNumConts = 0; 
-        var curActTypeNumConts = 0; var curActTypeMaxConts = 0;
-        var curNumDummyReqs = 0; var curInvkrOpZone = opZoneUnSafe
-        usedInvokers.get(toCheckInvoker) match {
-          case Some(toCheckInvokerStats) =>
-            val relevantStats = toCheckInvokerStats.numCoresReqsContsDummyReqsOpZone(actionName)
-            curInvkrNumCores = relevantStats._1 
-            curInvkrReqs = relevantStats._2
-            curInvkrNumConts = relevantStats._3
-            curActTypeNumConts = relevantStats._4
-            curActTypeMaxConts = relevantStats._5
-            curNumDummyReqs = relevantStats._6
-            curInvkrOpZone = relevantStats._7
 
-            logging.info(this,s"\t <adbg> <ISRPN-8.0> action: ${actionName}, currently numExtraContsNeeded: ${numExtraContsNeeded} toCheckInvoker: ${toCheckInvoker.toInt} cores: ${curInvkrNumCores} reqs: ${curInvkrReqs} conts: ${curInvkrNumConts} curInvkrOpZone: ${curInvkrOpZone} forcedDummyReq: ${forcedDummyReq}")
-            // implies existing invoker cannot accommodate any new request, will add a new one, just in case.
-          case None =>
-            logging.info(this,s"\t <adbg> <ISRPN-8.1> action: ${actionName}, this should NOT be happening, FIX-IT!!")
-        } 
-
-        var c1:Boolean = forcedDummyReq
-        var c2:Boolean = (curInvkrOpZone >= opZoneSpawnInNewInvoker)
-
-        var nextInvokerRank = (shouldBeLastInvoker.toInt+1)%(usedInvokers.size)
-        logging.info(this,s"\t <adbg> <ISRPN-F2> action: ${actionName}, curInvkrReqs: ${curInvkrReqs} is equal or greater than curInvkrNumCores: ${curInvkrNumCores}. Since this invoker is exhausted, we will add an extraInvoker: ${nextInvokerRank}!")
-        rankSortedInvokers.foreach{
-          curSortedInvoker =>
-          if(curSortedInvoker.toInt == nextInvokerRank){
-
-            usedInvokers.get(curSortedInvoker) match {
-              case Some(curSortedInvokerStats) =>
-
-                val (curInvkrNumCores, curInvkrReqs,curInvkrNumConts,curActTypeNumConts,curActTypeMaxConts,curNumDummyReqs,curInvkrOpZone) = curSortedInvokerStats.numCoresReqsContsDummyReqsOpZone(actionName)
-                val accumDummyReqsForCurAct = curSortedInvokerStats.getCurActAccumDummyReqs(actionName)
-                var maxContCapacity = curActTypeMaxConts - curActTypeNumConts
-                logging.info(this,s"\t <adbg> <ISRPN-FPRE> conts: ${curInvkrNumConts} actType-conts: ${curActTypeNumConts} curActTypeMaxConts: ${curActTypeMaxConts} maxContCapacity: ${maxContCapacity} accumDummyReqsForCurAct: ${accumDummyReqsForCurAct}")
-                //if( (curNumDummyReqs<=(curInvkrNumCores/2).toInt) && (curNumDummyReqs<=maxContCapacity) ) {
-                //if( (curNumDummyReqs<=(curInvkrNumCores/2).toInt) ) {
-                if(accumDummyReqsForCurAct==0){
-                  proactivInvkr2 = curSortedInvoker
-                  proactivInvkr2NumReqs = 1
-                  totDummyReqs+=proactivInvkr2NumReqs
-                  logging.info(this,s"\t <adbg> <ISRPN-F3> action: ${actionName}, curSortedInvoker: ${curSortedInvoker.toInt} is the same as nextInvokerRank: ${nextInvokerRank}, so adding ${proactivInvkr2NumReqs} dummy reqs")
-
-                  shouldRemoveInvkr.get(curSortedInvoker.toInt) match{
-                    case Some(curNumInFlightReqs) =>
-                      shouldRemoveInvkr = shouldRemoveInvkr - curSortedInvoker.toInt
-                      logging.info(this,s"\t <adbg> <AS:ISRPN-F3.0.1> action: ${actionName}, invoker: ${curSortedInvoker.toInt} is scheduled to be removed, but it is being overriden now!")
-                    case None =>
-                      logging.info(this,s"\t <adbg> <AS:ISRPN-F3.0.2> action: ${actionName}, invoker: ${curSortedInvoker.toInt} is not scheuled to be removed, so go ahead consider it for proactive spawning!")
-                  }                   
-                  curSortedInvokerStats.addDummyReq(actionName,proactivInvkr2NumReqs)
-                  logging.info(this,s"\t <adbg> <ISRPN-F3.1> action: ${actionName}, curSortedInvoker: ${curSortedInvoker.toInt} has ${proactivInvkr2NumReqs} more dummy reqs now, along with previous ${curNumDummyReqs} requests.")
-                }else{
-                  logging.info(this,s"\t <adbg> <ISRPN-F3.2> action: ${actionName}, curSortedInvoker: ${curSortedInvoker.toInt} has ${curNumDummyReqs} tracked dummy reqs")
-                }
-
-              case None =>
-                logging.info(this,s"\t <adbg> <ISRPN-F3.3> action: ${actionName}, curSortedInvoker: ${curSortedInvoker.toInt} tried to add ${proactivInvkr2NumReqs} tracked dummy reqs but couldn't find invoker's AdapativeInvokerStats object! FIX-IT!!!")
-            }
-          }else{
-            //logging.info(this,s"\t <adbg> <ISRPN-F4> action: ${actionName}, curSortedInvoker: ${curSortedInvoker.toInt} is not-the same as nextInvokerRank: ${nextInvokerRank}")
-          }
-        }
-    }
- 
-    
     if( (numExtraContsNeeded>0) && (timeSinceLastSqrProactive > minProactivWaitTime ) ){
       rankSortedInvokers.foreach{
         nextInvoker =>
@@ -991,8 +924,8 @@ class ActionStats(val actionName:String,logging: Logging)extends functionInfo {
             //val curReqIaspnMetadata = isSquareRootProactiveNeeded(curInvoker,toUseProactiveInvokerId,false,curInvokerProactiveContsToSpawn,numProactiveContsToSpawn); var curAllocMetadata = new allocMetadata(curInvoker,curReqIaspnMetadata)
 
             //making forcedDummyReq false for no proactiv spawning case
-            val curReqIsrpnMetadata = isSquareRootProactiveNeeded(curInvoker,toUseProactiveInvokerId,false,curInvokerProactiveContsToSpawn,numProactiveContsToSpawn)
-            //val curReqIsrpnMetadata = isSquareRootProactiveNeeded(curInvoker,toUseProactiveInvokerId,true,curInvokerProactiveContsToSpawn,numProactiveContsToSpawn)
+            //val curReqIsrpnMetadata = isSquareRootProactiveNeeded(curInvoker,toUseProactiveInvokerId,false,curInvokerProactiveContsToSpawn,numProactiveContsToSpawn)
+            val curReqIsrpnMetadata = isSquareRootProactiveNeeded(curInvoker,toUseProactiveInvokerId,true,curInvokerProactiveContsToSpawn,numProactiveContsToSpawn)
             var curAllocMetadata = new allocMetadata(curInvoker,curReqIsrpnMetadata)
             return Some(curInvoker,curAllocMetadata)//return Some(curInvoker)
           }
